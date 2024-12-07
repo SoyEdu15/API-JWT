@@ -1,0 +1,66 @@
+/* General styles */
+body {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 100vh;
+    margin: 0;
+    background-color: #e7e7e7;
+    color: #2d2b2b;
+    font-family: Arial, sans-serif;
+}
+
+.container {
+    width: 100%;
+    max-width: 400px; /* Limita el ancho máximo */
+    padding: 20px;
+    border: 1px solid #a7a4a4;
+    border-radius: 15px;
+    box-shadow: 0 0 1em #a7a4a4;
+    background-color: #ffffff;
+}
+
+h1 {
+    text-align: center;
+    font-size: 1.8em;
+    margin-bottom: 20px;
+}
+
+form {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch; /* Alineación de los elementos del formulario */
+}
+
+label, input {
+    width: 100%;
+    margin-bottom: 10px;
+    padding: 10px;
+    border: 1px solid #ccc;
+    border-radius: 5px;
+}
+
+input:focus {
+    border-color: #2d2b2b;
+    outline: none;
+}
+
+button {
+    padding: 10px;
+    border: none;
+    border-radius: 5px;
+    background-color: #2d2b2b;
+    color: #ffffff;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+button:hover {
+    background-color: #1c1c1c;
+}
+
+/* Profile page styles */
+h2 {
+    font-size: 1.2em;
+    margin-bottom: 10px;
+}
