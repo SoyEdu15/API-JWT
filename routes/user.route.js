@@ -13,6 +13,6 @@ router.get('/profile', verifyToken, UserController.profile)
 // Admin
 router.get('/', verifyToken, verifyAdmin, UserController.findAll)
 router.put('/update-role-vet/:uid', verifyToken, verifyAdmin, UserController.updateRoleVet)
-router.put('/update-role-users/:uid', verifyToken, verifyAdmin, UserController.updateRoleUser)
+router.put('/update-role-user/:uid', verifyToken, verifyAdmin, UserController.updateRoleUser)
 
 export default router;

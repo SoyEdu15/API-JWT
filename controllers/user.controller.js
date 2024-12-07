@@ -86,7 +86,7 @@ const login = async (req, res) => {
         })
     }
 }
-
+// /api/v1/users/profile
 const profile = async (req, res) => {
     try {
 
@@ -115,11 +115,10 @@ const findAll = async (req, res) => {
         })
     }
 }
-
 const updateRoleVet = async (req, res) => {
     try {
         const { uid } = req.params
-
+        
         const user = await UserModel.findOneByUid(uid)
         if (!user) {
             return res.status(404).json({ error: "User not found" });
@@ -131,7 +130,7 @@ const updateRoleVet = async (req, res) => {
             ok: true,
             msg: updatedUser
         })
-
+        
     } catch (error) {
         console.log(error)
         return res.status(500).json({
@@ -140,6 +139,7 @@ const updateRoleVet = async (req, res) => {
         })
     }
 }
+// /api/v1/users/update-role-user
 const updateRoleUser = async (req, res) => {
     try {
         const { uid } = req.params

@@ -64,7 +64,7 @@ const getUsers = async () => {
                     return;
                 }
                 try {
-                    await axios.put(`/api/v1/users/update-role-users/${user.uid}`, {}, {
+                    await axios.put(`/api/v1/users/update-role-user/${user.uid}`, {}, {
                         headers: {
                             Authorization: `Bearer ${token}`,
                         },
