@@ -91,8 +91,18 @@ psql "$DATABASE_URL" -f schema.sql
 npm run dev             # http://localhost:3000
 ```
 
-¿No tienes PostgreSQL a mano? Puedes levantar la API con una base de datos en memoria
-para probarla al instante (los datos no persisten):
+¿No tienes PostgreSQL instalado? Puedes levantar uno rápido con Docker (ajusta el puerto
+si ya tienes un PostgreSQL local escuchando en 5432):
+
+```bash
+docker run -d --name api-jwt-postgres \
+  -e POSTGRES_USER=api_jwt_user -e POSTGRES_PASSWORD=api_jwt_pass -e POSTGRES_DB=api_jwt_db \
+  -p 5433:5432 postgres:16-alpine
+psql "postgresql://api_jwt_user:api_jwt_pass@localhost:5433/api_jwt_db" -f schema.sql
+```
+
+¿No tienes PostgreSQL a mano ni Docker? Puedes levantar la API con una base de datos en
+memoria para probarla al instante (los datos no persisten):
 
 ```bash
 npm run demo             # http://localhost:4000
