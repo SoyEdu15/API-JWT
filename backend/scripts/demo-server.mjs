@@ -16,6 +16,7 @@ const __dirname = path.dirname(fileURLToPath(import.meta.url))
 const PORT = process.env.PORT || 4000
 
 process.env.JWT_SECRET = process.env.JWT_SECRET || 'demo_secret_no_usar_en_produccion'
+process.env.JWT_REFRESH_SECRET = process.env.JWT_REFRESH_SECRET || 'demo_refresh_secret_no_usar_en_produccion'
 process.env.NODE_ENV = 'development'
 
 const mem = newDb()

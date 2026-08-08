@@ -3,19 +3,32 @@ import express from 'express'
 import cors from 'cors'
 import helmet from 'helmet'
 import morgan from 'morgan'
+import cookieParser from 'cookie-parser'
 import rateLimit from 'express-rate-limit'
 
+import { validateEnv } from './config/env.js'
 import userRouter from './routes/user.route.js'
 import petRouter from './routes/pet.routes.js'
+
+if (process.env.NODE_ENV !== 'test') {
+    validateEnv()
+}
 
 const app = express()
 
 const corsOrigin = process.env.CORS_ORIGIN || 'http://localhost:5173'
 
+// Necesario para que express-rate-limit lea la IP real (X-Forwarded-For)
+// cuando el server corre detras de un proxy/load balancer en produccion.
+if (process.env.NODE_ENV === 'production') {
+    app.set('trust proxy', 1)
+}
+
 app.use(helmet())
-app.use(cors({ origin: corsOrigin }))
-app.use(express.json())
-app.use(express.urlencoded({ extended: true }))
+app.use(cors({ origin: corsOrigin, credentials: true }))
+app.use(cookieParser())
+app.use(express.json({ limit: '10kb' }))
+app.use(express.urlencoded({ extended: true, limit: '10kb' }))
 
 if (process.env.NODE_ENV !== 'test') {
     app.use(morgan('dev'))

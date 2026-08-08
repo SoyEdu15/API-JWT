@@ -1,15 +1,14 @@
 import jwt from 'jsonwebtoken'
 import { ROLES } from '../constants/roles.js'
 import { fail } from '../utils/response.js'
+import { ACCESS_TOKEN_COOKIE } from '../config/cookies.js'
 
 export const verifyToken = (req, res, next) => {
-    const header = req.headers.authorization
+    const token = req.cookies?.[ACCESS_TOKEN_COOKIE]
 
-    if (!header || !header.startsWith('Bearer ')) {
+    if (!token) {
         return fail(res, 'Token not provided', 401)
     }
-
-    const token = header.split(' ')[1]
 
     try {
         const { email, role_id, uid } = jwt.verify(token, process.env.JWT_SECRET)

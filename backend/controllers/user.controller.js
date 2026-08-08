@@ -3,13 +3,45 @@ import jwt from 'jsonwebtoken'
 import { UserModel } from '../models/user.model.js'
 import { fail, ok } from '../utils/response.js'
 import { isValidEmail, isValidPassword, isValidUsername } from '../utils/validators.js'
+import { generateCsrfToken } from '../middlewares/csrf.middlewares.js'
+import {
+    ACCESS_TOKEN_COOKIE,
+    REFRESH_TOKEN_COOKIE,
+    CSRF_COOKIE,
+    ACCESS_TOKEN_TTL,
+    REFRESH_TOKEN_TTL,
+    accessTokenCookieOptions,
+    refreshTokenCookieOptions,
+    csrfCookieOptions,
+} from '../config/cookies.js'
 
-const signToken = (user) =>
+const signAccessToken = (user) =>
     jwt.sign(
         { email: user.email, role_id: user.role_id, uid: user.uid },
         process.env.JWT_SECRET,
-        { expiresIn: '1h' }
+        { expiresIn: ACCESS_TOKEN_TTL }
     )
+
+const signRefreshToken = (user) =>
+    jwt.sign({ uid: user.uid }, process.env.JWT_REFRESH_SECRET, { expiresIn: REFRESH_TOKEN_TTL })
+
+// Deja al usuario con sesion iniciada: cookie de access token (httpOnly),
+// cookie de refresh token (httpOnly) y cookie CSRF (legible por JS).
+const startSession = (res, user) => {
+    res.cookie(ACCESS_TOKEN_COOKIE, signAccessToken(user), accessTokenCookieOptions)
+    res.cookie(REFRESH_TOKEN_COOKIE, signRefreshToken(user), refreshTokenCookieOptions)
+    res.cookie(CSRF_COOKIE, generateCsrfToken(), csrfCookieOptions)
+}
+
+// clearCookie solo necesita las opciones de coincidencia (path, httpOnly,
+// secure, sameSite), no maxAge.
+const withoutMaxAge = ({ maxAge, ...rest }) => rest
+
+const clearSession = (res) => {
+    res.clearCookie(ACCESS_TOKEN_COOKIE, withoutMaxAge(accessTokenCookieOptions))
+    res.clearCookie(REFRESH_TOKEN_COOKIE, withoutMaxAge(refreshTokenCookieOptions))
+    res.clearCookie(CSRF_COOKIE, withoutMaxAge(csrfCookieOptions))
+}
 
 // POST /api/v1/users/register
 const register = async (req, res) => {
@@ -26,7 +58,7 @@ const register = async (req, res) => {
             return fail(res, 'Invalid email format', 400)
         }
         if (!isValidPassword(password)) {
-            return fail(res, 'Password must be at least 6 characters long', 400)
+            return fail(res, 'Password must be at least 8 characters long and include a letter and a number', 400)
         }
 
         const existing = await UserModel.findOneByEmail(email)
@@ -38,9 +70,9 @@ const register = async (req, res) => {
         const hashedPassword = await bcryptjs.hash(password, salt)
 
         const newUser = await UserModel.create({ email, password: hashedPassword, username })
-        const token = signToken(newUser)
+        startSession(res, newUser)
 
-        return ok(res, { token, role_id: newUser.role_id, username: newUser.username }, 201)
+        return ok(res, { role_id: newUser.role_id, username: newUser.username }, 201)
     } catch (error) {
         console.error(error)
         return fail(res, 'Internal server error', 500)
@@ -66,13 +98,50 @@ const login = async (req, res) => {
             return fail(res, 'Invalid credentials', 401)
         }
 
-        const token = signToken(user)
+        startSession(res, user)
 
-        return ok(res, { token, role_id: user.role_id, username: user.username })
+        return ok(res, { role_id: user.role_id, username: user.username })
     } catch (error) {
         console.error(error)
         return fail(res, 'Internal server error', 500)
     }
+}
+
+// POST /api/v1/users/refresh
+const refresh = async (req, res) => {
+    try {
+        const token = req.cookies?.[REFRESH_TOKEN_COOKIE]
+        if (!token) {
+            return fail(res, 'Refresh token not provided', 401)
+        }
+
+        let payload
+        try {
+            payload = jwt.verify(token, process.env.JWT_REFRESH_SECRET)
+        } catch (error) {
+            return fail(res, 'Invalid or expired refresh token', 401)
+        }
+
+        const user = await UserModel.findOneByUid(payload.uid)
+        if (!user) {
+            return fail(res, 'User not found', 401)
+        }
+
+        // Rota ambos tokens en cada refresh para limitar la ventana de uso
+        // de un refresh token robado.
+        startSession(res, user)
+
+        return ok(res, { role_id: user.role_id, username: user.username })
+    } catch (error) {
+        console.error(error)
+        return fail(res, 'Internal server error', 500)
+    }
+}
+
+// POST /api/v1/users/logout
+const logout = async (req, res) => {
+    clearSession(res)
+    return ok(res, null)
 }
 
 // GET /api/v1/users/profile
@@ -139,6 +208,8 @@ const updateRoleUser = async (req, res) => {
 export const UserController = {
     register,
     login,
+    refresh,
+    logout,
     profile,
     findAll,
     updateRoleVet,
