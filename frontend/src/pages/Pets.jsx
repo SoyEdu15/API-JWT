@@ -83,6 +83,14 @@ export default function Pets() {
     }
   }
 
+  if (error && !pets) {
+    return (
+      <div className="max-w-lg mx-auto mt-10 px-4">
+        <Alert>{error}</Alert>
+      </div>
+    )
+  }
+
   if (!pets) return <Spinner />
 
   return (

@@ -24,9 +24,11 @@ export function Navbar() {
         </NavLink>
 
         <div className="flex items-center gap-1">
-          <NavLink to="/pets" className={linkClass}>
-            Mascotas
-          </NavLink>
+          {isAuthenticated && (
+            <NavLink to="/pets" className={linkClass}>
+              Mascotas
+            </NavLink>
+          )}
 
           {isAuthenticated && (
             <NavLink to="/profile" className={linkClass}>
