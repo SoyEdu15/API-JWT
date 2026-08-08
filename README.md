@@ -182,6 +182,14 @@ express-rate-limit, Morgan.
 
 ---
 
+## 📄 Licencia
+
+Este proyecto es de uso libre bajo licencia MIT. Podés usarlo, copiarlo, modificarlo
+y compartirlo sin pedir permiso, incluso para fines comerciales. Mirá el archivo
+[LICENSE](LICENSE) para el texto completo.
+
+---
+
 ## 💬 Autor
 
 **Eduard Murillo** — [github.com/SoyEdu15](https://github.com/SoyEdu15)
