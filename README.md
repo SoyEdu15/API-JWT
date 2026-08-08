@@ -1,12 +1,14 @@
 # 🐾 API-JWT — Clínica Veterinaria (Full Stack)
 
-Proyecto full-stack de autenticación y autorización basada en roles, construido como
-demostración de habilidades backend (Node.js/Express/PostgreSQL) y frontend (React).
-Simula el sistema interno de una clínica veterinaria con tres roles: **administrador**,
-**veterinario** y **cliente**.
+Este proyecto simula el sistema interno de una clínica veterinaria, con autenticación
+y autorización basada en roles: **administrador**, **veterinario** y **cliente**. Lo
+armé como práctica de backend con Node.js/Express/PostgreSQL, y le sumé un frontend
+en React desde cero para consumirlo.
 
-> Proyecto original de backend ampliado y corregido, con un frontend en React construido
-> desde cero para consumir la API.
+Partí de un backend que había hecho antes, le corregí varios problemas de seguridad
+y de diseño, y lo amplié con funcionalidad que le faltaba (CRUD completo de mascotas,
+tests, etc.). El frontend lo construí después, ya pensado para consumir la API tal
+como quedó.
 
 <p align="left">
   <img src="https://img.shields.io/badge/Node.js-339933?style=for-the-badge&logo=nodedotjs&logoColor=white" alt="Node" />
@@ -28,45 +30,46 @@ API-JWT/
 └── frontend/    SPA (React + Vite + Tailwind CSS)
 ```
 
-Dos aplicaciones independientes que se comunican por HTTP/JSON. El backend no sirve HTML;
-es una API pura consumida por el frontend (o por Postman/cURL).
+Son dos aplicaciones independientes que se comunican por HTTP/JSON. El backend no
+sirve HTML, es una API pura que puede consumirse desde el frontend, Postman o cURL.
 
 ## 🚀 Características
 
-- 🔒 **Autenticación con JWT** y contraseñas hasheadas con bcrypt.
-- 🔑 **Autorización por roles** (admin / vet / user) vía middlewares reutilizables.
-- 🐶 **CRUD completo de mascotas** con paginación, restringido a vet/admin para escritura.
-- 👥 **Panel de administración**: promover/degradar usuarios entre cliente y veterinario.
-- 🛡️ **Seguridad**: Helmet, CORS configurado, rate limiting en login/registro, y las
-  contraseñas nunca se exponen en ninguna respuesta de la API.
-- ✅ **Tests automatizados** del backend (14 casos) usando `pg-mem` (Postgres en memoria),
-  sin necesidad de una base de datos real para correrlos.
-- 🎨 **Frontend responsive** con rutas protegidas por rol, manejo de sesión persistente y
-  feedback de errores.
+- 🔒 Autenticación con JWT y contraseñas hasheadas con bcrypt.
+- 🔑 Autorización por roles (admin / vet / user) vía middlewares reutilizables.
+- 🐶 CRUD completo de mascotas con paginación, restringido a vet/admin para escritura.
+- 👥 Panel de administración para promover o degradar usuarios entre cliente y veterinario.
+- 🛡️ Helmet, CORS configurado, rate limiting en login/registro, y las contraseñas
+  nunca se exponen en ninguna respuesta de la API.
+- ✅ Suite de tests automatizados del backend (14 casos) usando `pg-mem`
+  (PostgreSQL en memoria), sin necesidad de una base de datos real para correrlos.
+- 🎨 Frontend responsive con rutas protegidas por rol, sesión persistente y manejo
+  de errores.
 
-## 🩺 Correcciones y mejoras realizadas sobre el backend original
+## 🩺 Sobre las correcciones al backend original
 
-Al auditar el repositorio original se encontraron y corrigieron varios problemas:
+El backend base tenía varios problemas que fui corrigiendo en el camino:
 
-1. **Fuga de contraseñas**: `/profile` y el listado de usuarios (`GET /users`) devolvían
-   el hash de la contraseña en la respuesta JSON. Se corrigió para excluirlo siempre.
-2. **`package.json` corrupto**: contenía un `name` y una dependencia (`"1": "file:"`)
-   inválidos, y el script `start` tenía un typo (`ndoe` en vez de `node`).
-3. **Ruta rota**: `GET /pets` intentaba servir `public/pets.html`, un archivo que no
-   existía en el repositorio (crasheaba con 404 sin manejar). Se eliminó el frontend
-   estático en favor de la nueva SPA en React.
-4. **Sin CORS**: no había forma de que un frontend en otro origen consumiera la API.
-5. **Respuestas inconsistentes**: unos endpoints devolvían `{ error }` y otros
-   `{ ok, msg }`. Se unificó todo bajo `{ ok, msg }`.
-6. **Sin validación de entrada**: registro aceptaba cualquier email/username/password.
-   Se añadió validación de formato de email, largo mínimo de username y contraseña.
-7. **Sin protección contra fuerza bruta**: se añadió rate limiting en login/registro.
-8. **Faltaban cabeceras de seguridad**: se añadió Helmet.
-9. **`pets` solo tenía lectura**: se añadió CRUD completo (crear, editar, eliminar)
-   restringido a veterinarios/administradores.
-10. **Sin esquema de base de datos ni `.env.example`**: se añadieron `schema.sql` y
-    `.env.example` para que el proyecto sea reproducible.
-11. **Sin tests**: se añadió una suite de 14 tests de integración sobre la API completa.
+1. `/profile` y `GET /users` devolvían el hash de la contraseña en la respuesta JSON.
+2. El `package.json` tenía un `name` inválido, una dependencia rota (`"1": "file:"`)
+   y un typo en el script `start` (`ndoe` en vez de `node`).
+3. `GET /pets` intentaba servir un `public/pets.html` que no existía, así que
+   crasheaba. Terminé quitando ese frontend estático a favor de la nueva SPA en React.
+4. No había CORS configurado, así que ningún frontend en otro origen podía consumir
+   la API.
+5. Las respuestas eran inconsistentes: unos endpoints devolvían `{ error }` y otros
+   `{ ok, msg }`. Unifiqué todo bajo `{ ok, msg }`.
+6. No había validación de entrada en el registro. Agregué validación de formato de
+   email, y de largo mínimo para username y contraseña.
+7. No había protección contra fuerza bruta, así que agregué rate limiting en login
+   y registro.
+8. Faltaban cabeceras de seguridad básicas, así que sumé Helmet.
+9. `pets` solo tenía lectura. Agregué el CRUD completo (crear, editar, eliminar),
+   restringido a veterinarios y administradores.
+10. No había esquema de base de datos ni `.env.example`, así que agregué `schema.sql`
+    y un `.env.example` para que cualquiera pueda levantarlo sin adivinar nada.
+11. No había tests, así que armé una suite de 14 tests de integración sobre la API
+    completa.
 
 ## 🧑‍💻 Roles del sistema
 
@@ -78,7 +81,7 @@ Al auditar el repositorio original se encontraron y corrigieron varios problemas
 
 ---
 
-## ⚙️ Puesta en marcha
+## ⚙️ Cómo instalarla
 
 ### Backend
 
@@ -91,8 +94,8 @@ psql "$DATABASE_URL" -f schema.sql
 npm run dev             # http://localhost:3000
 ```
 
-¿No tienes PostgreSQL instalado? Puedes levantar uno rápido con Docker (ajusta el puerto
-si ya tienes un PostgreSQL local escuchando en 5432):
+Si no tienes PostgreSQL instalado, puedes levantar uno rápido con Docker (cambia el
+puerto si ya tienes un PostgreSQL local escuchando en 5432):
 
 ```bash
 docker run -d --name api-jwt-postgres \
@@ -101,14 +104,14 @@ docker run -d --name api-jwt-postgres \
 psql "postgresql://api_jwt_user:api_jwt_pass@localhost:5433/api_jwt_db" -f schema.sql
 ```
 
-¿No tienes PostgreSQL a mano ni Docker? Puedes levantar la API con una base de datos en
-memoria para probarla al instante (los datos no persisten):
+Y si no quieres instalar nada, hay un modo demo con base de datos en memoria para
+probar la API al instante (los datos no persisten):
 
 ```bash
 npm run demo             # http://localhost:4000
 ```
 
-Correr los tests automatizados (tampoco requieren PostgreSQL real):
+Para correr los tests automatizados (tampoco necesitan PostgreSQL real):
 
 ```bash
 npm test
@@ -123,12 +126,12 @@ cp .env.example .env    # ajusta VITE_API_URL si tu backend no corre en :3000
 npm run dev              # http://localhost:5173
 ```
 
-Para probar el flujo completo rápidamente: levanta `npm run demo` en el backend y
-`npm run dev` en el frontend, y regístrate desde la interfaz.
+Para probar todo rápido: levanta `npm run demo` en el backend y `npm run dev` en el
+frontend, y regístrate desde la interfaz.
 
 > Para tener un usuario administrador, regístrate normalmente y luego actualiza su
 > `role_id` a `1` directamente en la base de datos (no hay ruta pública para crear
-> administradores, por diseño).
+> administradores, a propósito).
 
 ---
 
