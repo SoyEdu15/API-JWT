@@ -1,52 +1,53 @@
-import { createContext, useContext, useMemo, useState } from 'react'
+import { createContext, useContext, useEffect, useMemo, useState } from 'react'
 import { api } from '../api/client'
 
 const AuthContext = createContext(null)
 
-const readStoredAuth = () => {
-  try {
-    const raw = localStorage.getItem('auth')
-    return raw ? JSON.parse(raw) : null
-  } catch {
-    return null
-  }
-}
-
 export function AuthProvider({ children }) {
-  const [auth, setAuth] = useState(readStoredAuth)
+  const [user, setUser] = useState(null)
+  const [loading, setLoading] = useState(true)
 
-  const persist = (data) => {
-    localStorage.setItem('auth', JSON.stringify(data))
-    setAuth(data)
-  }
+  // El JWT vive en un cookie httpOnly (el frontend no puede leerlo), asi
+  // que al cargar la app preguntamos al backend si hay sesion activa.
+  useEffect(() => {
+    api
+      .get('/users/profile', { silentAuth: true })
+      .then(({ data }) => setUser(data.msg))
+      .catch(() => setUser(null))
+      .finally(() => setLoading(false))
+  }, [])
 
   const login = async ({ email, password }) => {
     const { data } = await api.post('/users/login', { email, password })
-    persist(data.msg)
+    setUser(data.msg)
     return data.msg
   }
 
   const register = async ({ username, email, password }) => {
     const { data } = await api.post('/users/register', { username, email, password })
-    persist(data.msg)
+    setUser(data.msg)
     return data.msg
   }
 
-  const logout = () => {
-    localStorage.removeItem('auth')
-    setAuth(null)
+  const logout = async () => {
+    try {
+      await api.post('/users/logout')
+    } finally {
+      setUser(null)
+    }
   }
 
   const value = useMemo(
     () => ({
-      user: auth,
-      isAuthenticated: Boolean(auth?.token),
-      roleId: auth?.role_id,
+      user,
+      isAuthenticated: Boolean(user),
+      roleId: user?.role_id,
+      loading,
       login,
       register,
       logout,
     }),
-    [auth]
+    [user, loading]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

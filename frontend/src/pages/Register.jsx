@@ -66,10 +66,12 @@ export default function Register() {
             label="Contraseña"
             name="password"
             required
-            minLength={6}
+            minLength={8}
+            pattern="(?=.*[A-Za-z])(?=.*\d).{8,}"
+            title="Mínimo 8 caracteres, con al menos una letra y un número"
             value={form.password}
             onChange={handleChange}
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mínimo 8 caracteres, con letra y número"
           />
 
           <Alert>{error}</Alert>
