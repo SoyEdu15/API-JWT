@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { getErrorMessage } from '../api/client'
 import { Alert } from '../components/Alert'
+import { PasswordInput } from '../components/PasswordInput'
 
 export default function Register() {
   const { register } = useAuth()
@@ -61,19 +62,15 @@ export default function Register() {
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">Contraseña</label>
-            <input
-              type="password"
-              name="password"
-              required
-              minLength={6}
-              value={form.password}
-              onChange={handleChange}
-              className="w-full rounded-lg border border-slate-300 px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-indigo-500"
-              placeholder="Mínimo 6 caracteres"
-            />
-          </div>
+          <PasswordInput
+            label="Contraseña"
+            name="password"
+            required
+            minLength={6}
+            value={form.password}
+            onChange={handleChange}
+            placeholder="Mínimo 6 caracteres"
+          />
 
           <Alert>{error}</Alert>
 
