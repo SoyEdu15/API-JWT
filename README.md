@@ -35,12 +35,15 @@ sirve HTML, es una API pura que puede consumirse desde el frontend, Postman o cU
 
 ## 🚀 Características
 
-- 🔒 Autenticación con JWT y contraseñas hasheadas con bcrypt.
+- 🔒 Autenticación con JWT en cookies `httpOnly` (access + refresh token) y
+  contraseñas hasheadas con bcrypt.
 - 🔑 Autorización por roles (admin / vet / user) vía middlewares reutilizables.
 - 🐶 CRUD completo de mascotas con paginación, restringido a vet/admin para escritura.
 - 👥 Panel de administración para promover o degradar usuarios entre cliente y veterinario.
-- 🛡️ Helmet, CORS configurado, rate limiting en login/registro, y las contraseñas
-  nunca se exponen en ninguna respuesta de la API.
+- 🛡️ Helmet, CORS con credenciales, protección CSRF (double-submit) en rutas
+  que modifican datos, rate limiting en login/registro, límite de tamaño de
+  body, validación de secretos al arrancar, y las contraseñas nunca se
+  exponen en ninguna respuesta de la API.
 - ✅ Suite de tests automatizados del backend (14 casos) usando `pg-mem`
   (PostgreSQL en memoria), sin necesidad de una base de datos real para correrlos.
 - 🎨 Frontend responsive con rutas protegidas por rol, sesión persistente y manejo
@@ -88,7 +91,7 @@ El backend base tenía varios problemas que fui corrigiendo en el camino:
 ```bash
 cd backend
 npm install
-cp .env.example .env   # completa DATABASE_URL y JWT_SECRET
+cp .env.example .env   # completa DATABASE_URL, JWT_SECRET y JWT_REFRESH_SECRET
 # Crea las tablas y datos de ejemplo:
 psql "$DATABASE_URL" -f schema.sql
 npm run dev             # http://localhost:3000
@@ -143,8 +146,10 @@ Base URL: `/api/v1`
 
 | Método | Ruta | Acceso | Descripción |
 |---|---|---|---|
-| POST | `/users/register` | Público | Registra un usuario (rol cliente por defecto) |
-| POST | `/users/login` | Público | Inicia sesión y devuelve un token JWT |
+| POST | `/users/register` | Público | Registra un usuario (rol cliente por defecto) e inicia sesión |
+| POST | `/users/login` | Público | Inicia sesión |
+| POST | `/users/refresh` | Cookie de refresh | Renueva la sesión sin pedir contraseña de nuevo |
+| POST | `/users/logout` | — | Cierra la sesión y limpia las cookies |
 | GET | `/users/profile` | Autenticado | Datos del usuario actual (sin password) |
 | GET | `/users` | Admin | Lista todos los usuarios (sin password) |
 | PUT | `/users/update-role-vet/:uid` | Admin | Promueve un usuario a veterinario |
@@ -160,7 +165,13 @@ Base URL: `/api/v1`
 | PUT | `/pets/:id` | Vet/Admin | Actualiza una mascota |
 | DELETE | `/pets/:id` | Vet/Admin | Elimina una mascota |
 
-Todas las rutas autenticadas requieren el header `Authorization: Bearer <token>`.
+La sesión se maneja con cookies `httpOnly` (access token de 15 min + refresh
+token de 7 días), no con un token en el body ni en `localStorage`. El
+frontend no necesita mandar ningún header de autenticación: el navegador
+adjunta las cookies solo. Las rutas que modifican datos estando autenticado
+(`PUT /users/update-role-*`, `POST/PUT/DELETE /pets`) además exigen el header
+`X-CSRF-Token` con el valor del cookie `csrf_token` (protección CSRF por
+double-submit), algo que ya resuelve el cliente Axios del frontend.
 
 Formato de respuesta estándar:
 
